@@ -5,18 +5,27 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
+import withDataFetching from './withDataFetching';
 
-import {useData} from './data';
-
-export default function Comments() {
-  const comments = useData();
+const Comments = ({
+  data
+}) => {
   return (
-    <>
-      {comments.map((comment, i) => (
+    <div>
+      {data?.map((comment, i) => (
         <p className="comment" key={i}>
           {comment}
         </p>
       ))}
-    </>
+    </div>
   );
 }
+Comments.getDataId = function() {
+  return 'comment-list'
+}
+Comments.getFetchingProps = function(data) {
+  return data.read();
+}
+
+
+export default withDataFetching(Comments)

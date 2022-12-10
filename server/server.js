@@ -7,18 +7,20 @@
  */
 
 'use strict';
-
+const path = require('path');
 const babelRegister = require('@babel/register');
 babelRegister({
-  ignore: [/[\\\/](build|server\/server|node_modules)[\\\/]/],
-  presets: [['react-app', {runtime: 'automatic'}]],
+  ignore: [/[\\\/](build|(node_modules))[\\\/]/],
+  "presets": [
+    "@babel/preset-env",
+    ["@babel/preset-react", { "runtime": "automatic" }]
+  ],
   plugins: ['@babel/transform-modules-commonjs'],
 });
 
 const express = require('express');
 const compress = require('compression');
 const {readFileSync} = require('fs');
-const path = require('path');
 const render = require('./render');
 const {JS_BUNDLE_DELAY} = require('./delays');
 

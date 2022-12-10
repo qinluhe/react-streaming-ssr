@@ -36,7 +36,7 @@ module.exports = function render(url, res) {
     console.error("Fatal", error);
   });
   let didError = false;
-  const data = createServerData();
+  const data = fetchData();
   const stream = renderToPipeableStream(
     <DataProvider data={data}>
       <App assets={assets} />
@@ -59,29 +59,47 @@ module.exports = function render(url, res) {
   // Try lowering this to see the client recover.
   setTimeout(() => stream.abort(), ABORT_DELAY);
 };
-
-// Simulate a delay caused by data fetching.
-// We fake this because the streaming HTML renderer
-// is not yet integrated with real data fetching strategies.
-function createServerData() {
-  let done = false;
-  let promise = null;
+// In a real implementation the data would be streamed with the HTML.
+// We haven't integrated this part yet, so we'll just use fake data.
+const fakeData = [
+  "Wait, it doesn't wait for React to load?",
+  'How does this even work?',
+  'I like marshmallows',
+];
+function wrapPromise(promise) {
+  let status = "pending";
+  let result;
+  let suspender = promise.then(
+    (r) => {
+      status = "success";
+      result = r;
+    },
+    (e) => {
+      status = "error";
+      result = e;
+    }
+  );
   return {
     read() {
-      if (done) {
-        return;
+      if (status === "pending") {
+        throw suspender;
+      } else if (status === "error") {
+        throw result;
+      } else if (status === "success") {
+        return result;
       }
-      if (promise) {
-        throw promise;
-      }
-      promise = new Promise((resolve) => {
-        setTimeout(() => {
-          done = true;
-          promise = null;
-          resolve();
-        }, API_DELAY);
-      });
-      throw promise;
     }
   };
+}
+
+function fetchComments() {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(fakeData);
+    }, API_DELAY);
+  })
+}
+
+function fetchData() {
+  return wrapPromise(fetchComments());
 }
